@@ -1,7 +1,10 @@
 <script lang="ts">
   import delete_icon from "$lib/images/delete.svg";
-  import { list } from "../store/list";
+  import { list } from "$lib/store/list";
   import { Temporal } from "@js-temporal/polyfill";
+  import { fly } from "svelte/transition";
+  import { flip } from "svelte/animate";
+  import { receive, send } from "$lib/transition/crossfade-custom";
 
   // vars
   let value: string = "";
@@ -54,8 +57,8 @@
 </script>
 
 <svelte:head>
-  <title>Test App</title>
-  <meta name="description" content="Svelte demo app" />
+  <title>Home</title>
+  <meta name="description" content="Home page" />
 </svelte:head>
 
 <section>
@@ -72,6 +75,7 @@
         bind:value
         class:error
         placeholder="Enter the text"
+        required
       />
       {#if error}
         <p class="warning">The field must be non-empty</p>
@@ -81,7 +85,12 @@
   </form>
   <ul class="list">
     {#each $list as { id, content } (id)}
-      <li class="item">
+      <li
+        class="item"
+        in:receive={{ key: id }}
+        out:send={{ key: id }}
+        animate:flip={{ duration: 200 }}
+      >
         <p class="item__content">{content}</p>
         <button
           type="button"
@@ -97,7 +106,10 @@
 
 <div class="containerDate">
   <input type="date" class="input" bind:value={selected_date} />
-  <span>{duration}</span>
+
+  {#key duration}
+    <span in:fly={{ y: -100, duration: 1000 }}>{duration}</span>
+  {/key}
 </div>
 
 <style>
@@ -128,7 +140,7 @@
     border: 1px solid var(--color-secondary);
     color: var(--color-inverted-primary);
     border-radius: 4px;
-	width: 100%;
+    width: 100%;
   }
 
   .button_delete {
